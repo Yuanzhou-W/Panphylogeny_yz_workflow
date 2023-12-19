@@ -1,0 +1,112 @@
+cd /number1/SUSTech_project/workflow_v2/stage_II_20230928/edge_III_anvio_contig-db/II_phylogentic/II_LLIILLIII_in_drep80comp
+# generate merged-contigs database
+
+conda activate anvio-7
+#
+anvi-gen-genomes-storage -e external_genome_comp80.txt \
+                         -o storge-GENOMES.db
+
+
+
+# generate pangenome from merged-contigs database
+
+conda activate anvio-7
+
+anvi-pan-genome -g storge-GENOMES.db \
+                --use-ncbi-blast \
+                -o PAN-GENOME \
+                --project-name PAN \
+                --num-threads 20  \
+                --min-occurrence 5 \
+                --minbit 0.5 \
+                --mcl-inflation 8 
+
+
+
+# import layers for genomes
+
+anvi-import-misc-data HL-drep75_LL-drep50_misc.txt \
+                      -p PAN-GENOME/PAN-PAN.db  \
+                      --target-data-table layers
+
+
+
+# split Pan and Core by using bayesian
+anvi-script-compute-bayesian-pan-core -p PAN-GENOME/PAN-PAN.db -g storge-GENOMES.db  -o pan_Core.tsv --store-in-db -T 40 -bb 1000
+
+
+
+
+
+# split pan by collection
+
+
+anvi-split -p PAN-GENOME/PAN-PAN.db \
+           -g storge-GENOMES.db \
+           -C CORE_bayesian \
+           -o CORE_bayesian/
+# export 
+anvi-get-sequences-for-gene-clusters -g genomes-storage-db \
+                                     -p pan-[Core]-db \
+                                     -o genes-fasta
+--concatenate-gene-clusters
+
+anvi-get-sequences-for-gene-clusters -g storge-GENOMES.db  -p CORE_bayesian/CORE/Single/single_core_str200/PAN.db  -o CORE_bayesian/CORE/Single/single_core_str200/concatenate_SCG.fasta --concatenate-gene-clusters
+
+mamba activate iqtree
+cd CORE_bayesian/CORE/Single/single_core_str200/
+iqtree -s concatenate_SCG.fasta -m MFP -T 40 -alrt 1000 -B 1000 --bnni 
+
+
+############################################## function-display
+for sample in `awk '{print $1}' /number1/SUSTech_project/workflow_v2/stage_II_20230928/edge_III_anvio_contig-db/II_phylogentic/II_LLIILLIII_in_drep80comp/external_genome_comp80.txt`
+do
+cat /number1/SUSTech_project/workflow_v2/stage_II_20230928/edge_II_clade_analysis/IV_clade_gtdb/PRO_dereplicated2598_genomes/$sample.fasta >> /number1/SUSTech_project/workflow_v2/stage_II_20230928/edge_III_anvio_contig-db/II_phylogentic/II_LLIILLIII_in_drep80comp/FUNC_profile/Pro_8098_genomes.fasta
+
+done
+mamba activate anvio-8
+
+anvi-gen-contigs-database -f /number1/SUSTech_project/workflow_v2/stage_II_20230928/edge_III_anvio_contig-db/II_phylogentic/II_LLIILLIII_in_drep80comp/FUNC_profile/Pro_8098_genomes.fasta \
+                          -o /number1/SUSTech_project/workflow_v2/stage_II_20230928/edge_III_anvio_contig-db/II_phylogentic/II_LLIILLIII_in_drep80comp/FUNC_profile/Pro_8098_genomes-contigs.db --num-threads 20
+
+
+
+anvi-run-hmms -c /number1/SUSTech_project/workflow_v2/stage_II_20230928/edge_III_anvio_contig-db/II_phylogentic/II_LLIILLIII_in_drep80comp/FUNC_profile/Pro_8098_genomes-contigs.db --num-threads 32 --just-do-it
+    anvi-run-kegg-kofams -c /number1/SUSTech_project/workflow_v2/stage_II_20230928/edge_III_anvio_contig-db/II_phylogentic/II_LLIILLIII_in_drep80comp/FUNC_profile/Pro_8098_genomes-contigs.db -T 32 --just-do-it
+    anvi-run-ncbi-cogs -c /number1/SUSTech_project/workflow_v2/stage_II_20230928/edge_III_anvio_contig-db/II_phylogentic/II_LLIILLIII_in_drep80comp/FUNC_profile/Pro_8098_genomes-contigs.db
+
+
+anvi-get-sequences-for-gene-calls -c /number1/SUSTech_project/workflow_v2/stage_II_20230928/edge_III_anvio_contig-db/II_phylogentic/II_LLIILLIII_in_drep80comp/FUNC_profile/Pro_8098_genomes-contigs.db \
+                                  --get-aa-sequences \
+                                  -o /number1/SUSTech_project/workflow_v2/stage_II_20230928/edge_III_anvio_contig-db/II_phylogentic/II_LLIILLIII_in_drep80comp/FUNC_profile/Pro_8098_genomes-contigs.fa
+
+
+mamba activate emapper
+
+mkdir /number1/SUSTech_project/workflow_v2/stage_II_20230928/edge_III_anvio_contig-db/II_phylogentic/II_LLIILLIII_in_drep80comp/FUNC_profile/emapper_work/
+emapper.py --cpu 32 -o Pro_8098_genomes --output_dir /number1/SUSTech_project/workflow_v2/stage_II_20230928/edge_III_anvio_contig-db/II_phylogentic/II_LLIILLIII_in_drep80comp/FUNC_profile/emapper_work/ --override -m diamond --dmnd_ignore_warnings  -i /number1/SUSTech_project/workflow_v2/stage_II_20230928/edge_III_anvio_contig-db/II_phylogentic/II_LLIILLIII_in_drep80comp/FUNC_profile/Pro_8098_genomes-contigs.fa --evalue 0.001 --score 60 --pident 40 --query_cover 20 --subject_cover 20 --itype proteins --excel
+
+
+
+sed 's/^\([0-9]\)/g\1/' /number1/SUSTech_project/workflow_v2/stage_II_20230928/edge_III_anvio_contig-db/II_phylogentic/II_LLIILLIII_in_drep80comp/FUNC_profile/emapper_work/Pro_8098_genomes.emapper.annotations > /number1/SUSTech_project/workflow_v2/stage_II_20230928/edge_III_anvio_contig-db/II_phylogentic/II_LLIILLIII_in_drep80comp/FUNC_profile/emapper_work/Pro_8098_genomes.emapper.annotations_fixed
+
+anvi-script-run-eggnog-mapper -c /number1/SUSTech_project/workflow_v2/stage_II_20230928/edge_III_anvio_contig-db/II_phylogentic/II_LLIILLIII_in_drep80comp/FUNC_profile/Pro_8098_genomes-contigs.db \
+                              --annotation /number1/SUSTech_project/workflow_v2/stage_II_20230928/edge_III_anvio_contig-db/II_phylogentic/II_LLIILLIII_in_drep80comp/FUNC_profile/emapper_work/Pro_8098_genomes.emapper.annotations_fixed \
+                              --use-version 2.1.6
+
+
+
+for split_name in `/number1/SUSTech_project/workflow_v2/stage_II_20230928/edge_III_anvio_contig-db/II_phylogentic/II_LLIILLIII_in_drep80comp/FUNC_profile/Pro_8098_genomes-contigs.db 'select split from splits_basic_info;'`
+do
+ which
+    GENOME=`echo $split_name | awk 'BEGIN{FS="-"}{print $1}'`
+    echo -e "$split_name\t$GENOME"
+done > /number1/SUSTech_project/workflow_v2/stage_II_20230928/edge_III_anvio_contig-db/II_phylogentic/II_LLIILLIII_in_drep80comp/FUNC_profile/Pro_8098_genomes-contigs-GENOME-COLLECTION.txt 
+
+
+anvi-import-collection /number1/SUSTech_project/workflow_v2/stage_II_20230928/edge_III_anvio_contig-db/II_phylogentic/II_LLIILLIII_in_drep80comp/FUNC_profile/Pro_8098_genomes-contigs-GENOME-COLLECTION.txt  \
+                       -c /number1/SUSTech_project/workflow_v2/stage_II_20230928/edge_III_anvio_contig-db/II_phylogentic/II_LLIILLIII_in_drep80comp/FUNC_profile/Pro_8098_genomes-contigs.db \
+                       -p /number1/SUSTech_project/workflow_v2/stage_II_20230928/edge_V_analysis_of_mapping/IV_anvio_metapangenome/SAMPLE_Profile_db/MERGE_506/pct95/PROFILE.db \
+                       -C Pro_Genome_8098
+
+

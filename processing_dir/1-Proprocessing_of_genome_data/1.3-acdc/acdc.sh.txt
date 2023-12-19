@@ -1,0 +1,3 @@
+cd $file/
+acdc -I $file/genome_list.txt -T 32 -o $file/acdc_result/result
+
