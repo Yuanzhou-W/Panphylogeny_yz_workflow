@@ -3,7 +3,7 @@ A workflow established with Snakemake, meticulously crafted to facilitate genomi
 
 # Genomic Processing Pipeline
 ## Part I - Genome Data Preprocessing and Deduplication
-Panphylogeny_yz_workflow/I_genome_pre_analysis.py
+![[Panphylogeny_yz_workflow/I_genome_pre_analysis.py]]
 
 This section focuses on the crucial initial steps of genome data preprocessing. The script `I_genome_pre_analysis.py` undertakes genome quality assessment based on the CheckM framework. It evaluates key metrics, including completeness, contamination, and heterogeneity. The assessment employs the marker gene set derived from original green algae for CheckM, and the heterogeneity data originates from the CheckM results due to limitations in CheckM2. Following this, the workflow utilizes Drep for deduplication based on CheckM results and employs ANIm (Average Nucleotide Identity based on whole-genome nucleotide consistency) to reduce redundancy.
 
