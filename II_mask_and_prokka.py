@@ -10,6 +10,9 @@ SAMPLE = [os.path.splitext(file)[0] for file in fasta_files]
 # Rule to define all as the final output
 rule all:
     input:
+        masked_genomes = expand("II_mask-prokka/mask/II_genome_masked/{sample}.fasta", sample=SAMPLE),
+        aft_mask_prokka = expand("II_mask-prokka/prokka/aft_mask/{sample}_/", sample=SAMPLE),
+        origin_prokka = expand("II_mask-prokka/prokka/origin/{sample}_/", sample=SAMPLE),
         gtf_dir1 = expand("II_mask-prokka/prokka/origin_gtf_res/{sample1}.gtf", sample1=SAMPLE),
         gtf_dir2 = expand("II_mask-prokka/prokka/aft_mask_gtf_res/{sample1}.gtf", sample1=SAMPLE)
 

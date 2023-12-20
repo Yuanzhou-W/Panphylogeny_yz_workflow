@@ -16,8 +16,6 @@ rule all:
     input:
         Drep_dir = expand("I_genome_pre/I_II-Drep/dereplicate/drep{comp}_{sa}", comp = COMP, sa =  SA),
         Pyani_dir = expand("I_genome_pre/I_II-Drep/Pyani_aft_drep/drep{comp1}_{sa1}",comp1 = COMP, sa1 =  SA),
-        checkm = "I_genome_pre/I_I-checkm/result/checkm_drep_type.csv",
-        checkm2 = "I_genome_pre/I_I-checkm/result/checkm2_drep_type.csv",
         GTDB_tree = expand("I_genome_pre/I_III-GTDB/tree/result/drep{comp2}_{sa2}.tree",comp2 = COMP, sa2 =  SA)
  
 #########################################################
